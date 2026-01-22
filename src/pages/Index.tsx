@@ -5,7 +5,7 @@ import AttackCard from "@/components/AttackCard";
 import SolutionCard from "@/components/SolutionCard";
 import InfrastructureTarget from "@/components/InfrastructureTarget";
 import ConnectingLine from "@/components/ConnectingLine";
-import { toast } from "@/utils/toast"; // Using the existing toast utility
+import { showSuccess, showError, showInfo } from "@/utils/toast"; // Using the existing toast utility
 
 // Helper to get element position
 interface ElementPosition {
@@ -75,7 +75,7 @@ const Index = () => {
 
     // Prevent launching the same attack multiple times simultaneously
     if (activeAttacks.has(attack.id)) {
-      toast.info(`Angriff "${attack.name}" läuft bereits.`);
+      showInfo(`Angriff "${attack.name}" läuft bereits.`);
       return;
     }
 
@@ -93,13 +93,13 @@ const Index = () => {
       // Attack succeeds, reduce health
       if (attack.target === "server") {
         setServerHealth((prev) => Math.max(0, prev - 20));
-        toast.error(`Server wurde von "${attack.name}" getroffen!`);
+        showError(`Server wurde von "${attack.name}" getroffen!`);
       } else if (attack.target === "employee") {
         setEmployeeHealth((prev) => Math.max(0, prev - 20)); // Employee health not visually represented yet, but tracked
-        toast.error(`Mitarbeiter wurde von "${attack.name}" getroffen!`);
+        showError(`Mitarbeiter wurde von "${attack.name}" getroffen!`);
       }
     } else {
-      toast.success(`Angriff "${attack.name}" wurde abgewehrt!`);
+      showSuccess(`Angriff "${attack.name}" wurde abgewehrt!`);
     }
 
     // Automatically remove attack after a short period to allow re-launching
@@ -127,14 +127,14 @@ const Index = () => {
         const currentSolutions = newSolutions.get(targetType) || [];
         if (!currentSolutions.some((s) => s.id === solution.id)) {
           newSolutions.set(targetType, [...currentSolutions, solution]);
-          toast.success(`Lösung "${solution.name}" auf ${targetType === "server" ? "Server" : "Mitarbeiter"} angewendet.`);
+          showSuccess(`Lösung "${solution.name}" auf ${targetType === "server" ? "Server" : "Mitarbeiter"} angewendet.`);
         } else {
-          toast.info(`Lösung "${solution.name}" ist bereits aktiv.`);
+          showInfo(`Lösung "${solution.name}" ist bereits aktiv.`);
         }
         return newSolutions;
       });
     } else if (solution && solution.target !== targetType) {
-      toast.error(`Lösung "${solution.name}" ist für ${solution.target === "server" ? "Server" : "Mitarbeiter"}, nicht für ${targetType === "server" ? "Server" : "Mitarbeiter"}.`);
+      showError(`Lösung "${solution.name}" ist für ${solution.target === "server" ? "Server" : "Mitarbeiter"}, nicht für ${targetType === "server" ? "Server" : "Mitarbeiter"}.`);
     }
   };
 
@@ -146,7 +146,7 @@ const Index = () => {
         targetType,
         currentSolutions.filter((s) => s.id !== solutionId)
       );
-      toast.info(`Lösung "${solutions.find(s => s.id === solutionId)?.name}" von ${targetType === "server" ? "Server" : "Mitarbeiter"} entfernt.`);
+      showInfo(`Lösung "${solutions.find(s => s.id === solutionId)?.name}" von ${targetType === "server" ? "Server" : "Mitarbeiter"} entfernt.`);
       return newSolutions;
     });
   };
