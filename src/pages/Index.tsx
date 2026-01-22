@@ -95,7 +95,7 @@ const Index = () => {
         setServerHealth((prev) => Math.max(0, prev - 20));
         showError(`Server wurde von "${attack.name}" getroffen!`);
       } else if (attack.target === "employee") {
-        setEmployeeHealth((prev) => Math.max(0, prev - 20)); // Employee health not visually represented yet, but tracked
+        setEmployeeHealth((prev) => Math.max(0, prev - 20));
         showError(`Mitarbeiter wurde von "${attack.name}" getroffen!`);
       }
     } else {
@@ -190,6 +190,7 @@ const Index = () => {
             type="employee"
             name="Mitarbeiter"
             icon={<User className="text-blue-700 dark:text-blue-300" size={64} />}
+            health={employeeHealth} {/* Added health prop for employee */}
             activeSolutions={activeSolutions.get("employee") || []}
             onDrop={handleDrop}
             onRemoveSolution={handleRemoveSolution}
