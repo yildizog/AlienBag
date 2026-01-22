@@ -6,7 +6,6 @@ import AttackCard from "@/components/AttackCard";
 import SolutionCard from "@/components/SolutionCard";
 import InfrastructureTarget from "@/components/InfrastructureTarget";
 import ConnectingLine from "@/components/ConnectingLine";
-import ParticleCanvas from "@/components/ParticleCanvas";
 import { showSuccess, showError, showInfo } from "@/utils/toast"; // Using the existing toast utility
 
 // Helper to get element position
@@ -39,6 +38,10 @@ const Index = () => {
   const attackRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const serverRef = useRef<HTMLDivElement>(null);
   const employeeRef = useRef<HTMLDivElement>(null);
+  const attackListRef = useRef<HTMLDivElement>(null);
+
+  // Track the visible bounds of the scrollable container
+  const [visibleBounds, setVisibleBounds] = useState({ top: 0, bottom: 0 });
 
   const [positions, setPositions] = useState<{
     [key: string]: ElementPosition | null;
@@ -58,6 +61,14 @@ const Index = () => {
       newPositions[attack.id] = getElementPosition(attackRefs.current[attack.id]);
     });
     setPositions(newPositions);
+
+    if (attackListRef.current) {
+      const rect = attackListRef.current.getBoundingClientRect();
+      setVisibleBounds({
+        top: rect.top + window.scrollY,
+        bottom: rect.bottom + window.scrollY
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -71,6 +82,25 @@ const Index = () => {
     };
   }, [updatePositions]);
 
+  // Clean up active attacks when they become defended
+  useEffect(() => {
+    setActiveAttacks((prevAttacks) => {
+      let hasChanges = false;
+      const nextAttacks = new Map(prevAttacks);
+
+      prevAttacks.forEach((attack) => {
+        const targetSolutions = activeSolutions.get(attack.target) || [];
+        const isDefended = targetSolutions.some((sol) => sol.defendsAgainstAttacks.includes(attack.id));
+        if (isDefended) {
+          nextAttacks.delete(attack.id);
+          hasChanges = true;
+        }
+      });
+
+      return hasChanges ? nextAttacks : prevAttacks;
+    });
+  }, [activeSolutions]);
+
   const handleLaunchAttack = (attackId: string) => {
     const attack = attacks.find((a) => a.id === attackId);
     if (!attack) return;
@@ -81,37 +111,29 @@ const Index = () => {
       return;
     }
 
+    // Check if attack is defended
+    const targetSolutions = activeSolutions.get(attack.target) || [];
+    const isDefended = targetSolutions.some((sol) => sol.defendsAgainstAttacks.includes(attack.id));
+
+    if (isDefended) {
+      showSuccess(`Angriff "${attack.name}" wurde abgewehrt!`);
+      return;
+    }
+
     setActiveAttacks((prev) => {
       const newAttacks = new Map(prev);
       newAttacks.set(attack.id, attack);
       return newAttacks;
     });
 
-    // Check if attack is defended
-    const targetSolutions = activeSolutions.get(attack.target) || [];
-    const isDefended = targetSolutions.some((sol) => sol.defendsAgainstAttacks.includes(attack.id));
-
-    if (!isDefended) {
-      // Attack succeeds, reduce health
-      if (attack.target === "server") {
-        setServerHealth((prev) => Math.max(0, prev - 20));
-        showError(`Server wurde von "${attack.name}" getroffen!`);
-      } else if (attack.target === "employee") {
-        setEmployeeHealth((prev) => Math.max(0, prev - 20));
-        showError(`Mitarbeiter wurde von "${attack.name}" getroffen!`);
-      }
-    } else {
-      showSuccess(`Angriff "${attack.name}" wurde abgewehrt!`);
+    // Attack succeeds, reduce health
+    if (attack.target === "server") {
+      setServerHealth((prev) => Math.max(0, prev - 20));
+      showError(`Server wurde von "${attack.name}" getroffen!`);
+    } else if (attack.target === "employee") {
+      setEmployeeHealth((prev) => Math.max(0, prev - 20));
+      showError(`Mitarbeiter wurde von "${attack.name}" getroffen!`);
     }
-
-    // Automatically remove attack after a short period to allow re-launching
-    setTimeout(() => {
-      setActiveAttacks((prev) => {
-        const newAttacks = new Map(prev);
-        newAttacks.delete(attack.id);
-        return newAttacks;
-      });
-    }, 3000); // Attack animation duration + some buffer
   };
 
   const handleDragStart = (event: React.DragEvent, solutionId: string) => {
@@ -155,15 +177,17 @@ const Index = () => {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50 p-4 relative overflow-hidden">
-      <h1 className="text-3xl font-bold text-center mb-8 text-primary dark:text-blue-300">
-        AlienBag Security Training Tool
-      </h1>
+      <div className="relative z-30 bg-gray-50 dark:bg-gray-900 pb-8 pt-4 shadow-sm">
+        <h1 className="text-3xl font-bold text-center text-primary dark:text-blue-300">
+          AlienBag Security Training Tool
+        </h1>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto flex-1 w-full min-h-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto flex-1 w-full min-h-0 relative z-20">
         {/* Left Column: Attack Vectors */}
         <div className="col-span-1 flex flex-col h-full min-h-0">
           <h2 className="text-xl font-semibold mb-4 text-primary dark:text-blue-300">Angriffsvektoren</h2>
-          <div className="space-y-2 flex-1 overflow-y-auto pr-2" onScroll={updatePositions}>
+          <div ref={attackListRef} className="space-y-2 flex-1 overflow-y-auto pr-2" onScroll={updatePositions}>
             {attacks.map((attack) => (
               <AttackCard
                 key={attack.id}
@@ -212,27 +236,55 @@ const Index = () => {
       </div>
 
       {/* SVG Lines for Attacks */}
-      {Array.from(activeAttacks.values()).map((attack) => {
-        const startPos = positions[attack.id];
-        const endPos = attack.target === 'server' ? positions.server : positions.employee;
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        {Array.from(activeAttacks.values()).map((attack) => {
+          const startPos = positions[attack.id];
+          const endPos = attack.target === 'server' ? positions.server : positions.employee;
 
-        if (!startPos || !endPos) return null;
+          if (!startPos || !endPos) return null;
 
-        const targetSolutions = activeSolutions.get(attack.target) || [];
-        const isDefended = targetSolutions.some((sol) => sol.defendsAgainstAttacks.includes(attack.id));
+          const targetSolutions = activeSolutions.get(attack.target) || [];
+          const isDefended = targetSolutions.some((sol) => sol.defendsAgainstAttacks.includes(attack.id));
 
-        return (
-          <ConnectingLine
-            key={attack.id}
-            startPos={startPos}
-            endPos={endPos}
-            isAttacking={true}
-            isDefended={isDefended}
-          />
-        );
-      })}
+          if (isDefended) return null;
 
-      <ParticleCanvas activeAttacks={activeAttacks} positions={positions} />
+          // Check visibility and clamp
+          // If the start point is outside the visible bounds, clamp it to the edge
+          let lineStartY = startPos.y + startPos.height / 2;
+          let isClamped = false;
+
+          const topBuffer = 20; // Space for header shadow/padding
+          const topEdge = visibleBounds.top + topBuffer;
+          const bottomEdge = visibleBounds.bottom - 20;
+
+          if (lineStartY < topEdge) {
+            lineStartY = topEdge;
+            isClamped = true;
+          } else if (lineStartY > bottomEdge) {
+            lineStartY = bottomEdge;
+            isClamped = true;
+          }
+
+          // Create a modified start position for the line
+          // We set height to 0 so the ConnectingLine logic (y + height/2) uses our calculated Y directly
+          const clampedStartPos = {
+            ...startPos,
+            y: lineStartY,
+            height: 0
+          };
+
+          return (
+            <ConnectingLine
+              key={attack.id}
+              startPos={clampedStartPos}
+              endPos={endPos}
+              isAttacking={true}
+              isDefended={isDefended}
+            />
+          );
+        })}
+      </div>
+
     </div>
   );
 };
