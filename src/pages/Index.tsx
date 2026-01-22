@@ -211,6 +211,7 @@ const Index = () => {
             onDrop={handleDrop}
             onRemoveSolution={handleRemoveSolution}
             ref={serverRef}
+            isUnderAttack={Array.from(activeAttacks.values()).some(a => a.target === 'server')}
           />
           <InfrastructureTarget
             type="employee"
@@ -221,6 +222,7 @@ const Index = () => {
             onDrop={handleDrop}
             onRemoveSolution={handleRemoveSolution}
             ref={employeeRef}
+            isUnderAttack={Array.from(activeAttacks.values()).some(a => a.target === 'employee')}
           />
         </div>
 
