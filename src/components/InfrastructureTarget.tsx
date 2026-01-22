@@ -25,7 +25,7 @@ const InfrastructureTarget = React.forwardRef<HTMLDivElement, InfrastructureTarg
     return (
       <Card
         ref={ref}
-        className={`flex flex-col items-center justify-center p-6 h-64 w-full max-w-xs mx-auto ${
+        className={`flex flex-col items-center justify-center p-6 min-h-[16rem] w-full max-w-xs mx-auto ${ // Changed h-64 to min-h-[16rem]
           type === "server" ? "bg-gray-100 border-gray-300" : "bg-blue-50 border-blue-200"
         }`}
         onDragOver={handleDragOver}
@@ -34,7 +34,7 @@ const InfrastructureTarget = React.forwardRef<HTMLDivElement, InfrastructureTarg
         <div className="text-6xl mb-4">{icon}</div>
         <h3 className="text-xl font-semibold mb-2">{name}</h3>
         {health !== undefined && <HealthBar health={health} />}
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
+        <div className="mt-2 flex flex-wrap justify-center gap-2"> {/* Changed mt-4 to mt-2 */}
           {activeSolutions.map((sol) => (
             <Badge key={sol.id} className="bg-blue-600 text-white flex items-center gap-1">
               {sol.name}

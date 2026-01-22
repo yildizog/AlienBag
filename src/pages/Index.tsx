@@ -174,7 +174,7 @@ const Index = () => {
         </div>
 
         {/* Middle Column: Infrastructure */}
-        <div className="col-span-1 flex flex-col items-center justify-center space-y-8">
+        <div className="col-span-1 flex flex-col items-center justify-center space-y-6"> {/* Reduced space-y from 8 to 6 */}
           <h2 className="text-xl font-semibold mb-4 text-primary dark:text-blue-300">Infrastruktur</h2>
           <InfrastructureTarget
             type="server"
@@ -189,8 +189,8 @@ const Index = () => {
           <InfrastructureTarget
             type="employee"
             name="Mitarbeiter"
-            icon={<User className="text-blue-700 dark:text-blue-300" size={64} />}
-            health={employeeHealth} {/* Added health prop for employee */}
+            icon={<User className="text-gray-600 dark:text-gray-400" size={64} />} {/* Changed icon color */}
+            health={employeeHealth}
             activeSolutions={activeSolutions.get("employee") || []}
             onDrop={handleDrop}
             onRemoveSolution={handleRemoveSolution}
