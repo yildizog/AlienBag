@@ -34,12 +34,17 @@ const InfrastructureTarget = React.forwardRef<HTMLDivElement, InfrastructureTarg
         onDrop={(e) => onDrop(e, type)}
       >
         <motion.div
+          key={isUnderAttack ? "under-attack" : "idle"}
           className="text-6xl mb-4"
           animate={isUnderAttack ? {
             color: ["#ef4444", "inherit", "#ef4444"],
             scale: [1, 1.1, 1],
             filter: ["drop-shadow(0 0 0px #ef4444)", "drop-shadow(0 0 10px #ef4444)", "drop-shadow(0 0 0px #ef4444)"]
-          } : {}}
+          } : {
+            color: "inherit",
+            scale: 1,
+            filter: "none"
+          }}
           transition={{
             duration: 1,
             repeat: Infinity,

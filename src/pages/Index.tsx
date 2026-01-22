@@ -211,7 +211,12 @@ const Index = () => {
             onDrop={handleDrop}
             onRemoveSolution={handleRemoveSolution}
             ref={serverRef}
-            isUnderAttack={Array.from(activeAttacks.values()).some(a => a.target === 'server')}
+            isUnderAttack={Array.from(activeAttacks.values()).some((a) => {
+              if (a.target !== 'server') return false;
+              // Check if defended (sync with line visibility)
+              const targetSolutions = activeSolutions.get('server') || [];
+              return !targetSolutions.some((sol) => sol.defendsAgainstAttacks.includes(a.id));
+            })}
           />
           <InfrastructureTarget
             type="employee"
@@ -222,7 +227,12 @@ const Index = () => {
             onDrop={handleDrop}
             onRemoveSolution={handleRemoveSolution}
             ref={employeeRef}
-            isUnderAttack={Array.from(activeAttacks.values()).some(a => a.target === 'employee')}
+            isUnderAttack={Array.from(activeAttacks.values()).some((a) => {
+              if (a.target !== 'employee') return false;
+              // Check if defended (sync with line visibility)
+              const targetSolutions = activeSolutions.get('employee') || [];
+              return !targetSolutions.some((sol) => sol.defendsAgainstAttacks.includes(a.id));
+            })}
           />
         </div>
 
