@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Server, User } from "lucide-react";
 import { attacks, solutions, Attack, Solution, TargetType } from "@/data/securityData";
@@ -174,7 +175,7 @@ const Index = () => {
         </div>
 
         {/* Middle Column: Infrastructure */}
-        <div className="col-span-1 flex flex-col items-center justify-center space-y-6"> {/* Reduced space-y from 8 to 6 */}
+        <div className="col-span-1 flex flex-col items-center justify-center space-y-6">
           <h2 className="text-xl font-semibold mb-4 text-primary dark:text-blue-300">Infrastruktur</h2>
           <InfrastructureTarget
             type="server"
@@ -189,7 +190,7 @@ const Index = () => {
           <InfrastructureTarget
             type="employee"
             name="Mitarbeiter"
-            icon={<User className="text-gray-600 dark:text-gray-400" size={64} />} {/* Changed icon color */}
+            icon={<User className="text-gray-600 dark:text-gray-400" size={64} />}
             health={employeeHealth}
             activeSolutions={activeSolutions.get("employee") || []}
             onDrop={handleDrop}
