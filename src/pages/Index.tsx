@@ -6,6 +6,7 @@ import AttackCard from "@/components/AttackCard";
 import SolutionCard from "@/components/SolutionCard";
 import InfrastructureTarget from "@/components/InfrastructureTarget";
 import ConnectingLine from "@/components/ConnectingLine";
+import ParticleCanvas from "@/components/ParticleCanvas";
 import { showSuccess, showError, showInfo } from "@/utils/toast"; // Using the existing toast utility
 
 // Helper to get element position
@@ -63,7 +64,7 @@ const Index = () => {
     updatePositions();
     window.addEventListener("resize", updatePositions);
     // Also update positions after a short delay to ensure all elements are rendered
-    const timeoutId = setTimeout(updatePositions, 100); 
+    const timeoutId = setTimeout(updatePositions, 100);
     return () => {
       window.removeEventListener("resize", updatePositions);
       clearTimeout(timeoutId);
@@ -213,7 +214,7 @@ const Index = () => {
       {/* SVG Lines for Attacks */}
       {Array.from(activeAttacks.values()).map((attack) => {
         const startPos = positions[attack.id];
-        const endPos = attack.target === "server" ? positions.server : positions.employee;
+        const endPos = attack.target === 'server' ? positions.server : positions.employee;
 
         if (!startPos || !endPos) return null;
 
@@ -230,6 +231,8 @@ const Index = () => {
           />
         );
       })}
+
+      <ParticleCanvas activeAttacks={activeAttacks} positions={positions} />
     </div>
   );
 };
