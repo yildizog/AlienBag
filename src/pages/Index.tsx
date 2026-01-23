@@ -74,10 +74,12 @@ const Index = () => {
   useEffect(() => {
     updatePositions();
     window.addEventListener("resize", updatePositions);
+    window.addEventListener("scroll", updatePositions); // Update positions on scroll
     // Also update positions after a short delay to ensure all elements are rendered
     const timeoutId = setTimeout(updatePositions, 100);
     return () => {
       window.removeEventListener("resize", updatePositions);
+      window.removeEventListener("scroll", updatePositions);
       clearTimeout(timeoutId);
     };
   }, [updatePositions]);
@@ -176,18 +178,18 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50 p-4 relative overflow-hidden">
+    <div className="min-h-screen md:h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50 p-4 relative overflow-x-hidden md:overflow-hidden">
       <div className="relative z-30 bg-gray-50 dark:bg-gray-900 pb-8 pt-4 shadow-sm">
         <h1 className="text-3xl font-bold text-center text-primary dark:text-blue-300">
           AlienBag Security Training Tool
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto flex-1 w-full min-h-0 relative z-20">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto flex-1 w-full min-h-0 relative z-20 h-auto md:h-full">
         {/* Left Column: Attack Vectors */}
         <div className="col-span-1 flex flex-col h-full min-h-0">
           <h2 className="text-xl font-semibold mb-4 text-primary dark:text-blue-300">Angriffsvektoren</h2>
-          <div ref={attackListRef} className="space-y-2 flex-1 overflow-y-auto pr-2" onScroll={updatePositions}>
+          <div ref={attackListRef} className="space-y-2 flex-1 overflow-y-auto pr-2 max-h-[40vh] md:max-h-none" onScroll={updatePositions}>
             {attacks.map((attack) => (
               <AttackCard
                 key={attack.id}
@@ -200,7 +202,7 @@ const Index = () => {
         </div>
 
         {/* Middle Column: Infrastructure */}
-        <div className="col-span-1 flex flex-col items-center justify-center space-y-6 h-full">
+        <div className="col-span-1 flex flex-col items-center justify-center space-y-6 h-full py-8 md:py-0">
           <h2 className="text-xl font-semibold mb-4 text-primary dark:text-blue-300">Infrastruktur</h2>
           <InfrastructureTarget
             type="server"
@@ -239,7 +241,7 @@ const Index = () => {
         {/* Right Column: Security Arsenal */}
         <div className="col-span-1 flex flex-col h-full min-h-0">
           <h2 className="text-xl font-semibold mb-4 text-primary dark:text-blue-300">Sicherheits-Arsenal</h2>
-          <div className="space-y-2 flex-1 overflow-y-auto pr-2" onScroll={updatePositions}>
+          <div className="space-y-2 flex-1 overflow-y-auto pr-2 max-h-[40vh] md:max-h-none" onScroll={updatePositions}>
             {solutions.map((solution) => (
               <SolutionCard key={solution.id} solution={solution} onDragStart={handleDragStart} />
             ))}
