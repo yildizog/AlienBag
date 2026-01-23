@@ -226,7 +226,7 @@ const Index = () => {
         </div>
 
         {/* Middle Column: Infrastructure */}
-        <div className="col-span-1 flex flex-col items-center justify-center space-y-6 h-full py-8 sm:py-0">
+        <div className="col-span-1 flex flex-col items-center justify-center sm:justify-start space-y-6 h-full py-8 sm:py-4 sm:overflow-y-auto scrollbar-hide">
           <h2 className="text-xl font-semibold mb-4 text-primary dark:text-blue-300">Infrastruktur</h2>
           <InfrastructureTarget
             type="server"
