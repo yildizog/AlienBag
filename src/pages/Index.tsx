@@ -7,6 +7,16 @@ import SolutionCard from "@/components/SolutionCard";
 import InfrastructureTarget from "@/components/InfrastructureTarget";
 import ConnectingLine from "@/components/ConnectingLine";
 import { showSuccess, showError, showInfo } from "@/utils/toast"; // Using the existing toast utility
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Helper to get element position
 interface ElementPosition {
@@ -34,6 +44,7 @@ const Index = () => {
   const [employeeHealth, setEmployeeHealth] = useState(100);
   const [activeAttacks, setActiveAttacks] = useState<Map<string, Attack>>(new Map());
   const [activeSolutions, setActiveSolutions] = useState<Map<TargetType, Solution[]>>(new Map());
+  const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
 
   const attackRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const serverRef = useRef<HTMLDivElement>(null);
@@ -142,12 +153,12 @@ const Index = () => {
     event.dataTransfer.setData("solutionId", solutionId);
   };
 
-  const handleDrop = (event: React.DragEvent, targetType: TargetType) => {
-    event.preventDefault();
-    const solutionId = event.dataTransfer.getData("solutionId");
-    const solution = solutions.find((s) => s.id === solutionId);
+  const handleSolutionClick = (solution: Solution) => {
+    setSelectedSolution(solution);
+  };
 
-    if (solution && solution.target === targetType) {
+  const applySolution = (solution: Solution, targetType: TargetType) => {
+    if (solution.target === targetType) {
       setActiveSolutions((prev) => {
         const newSolutions = new Map(prev);
         const currentSolutions = newSolutions.get(targetType) || [];
@@ -159,8 +170,21 @@ const Index = () => {
         }
         return newSolutions;
       });
-    } else if (solution && solution.target !== targetType) {
-      showError(`Lösung "${solution.name}" ist für ${solution.target === "server" ? "Server" : "Mitarbeiter"}, nicht für ${targetType === "server" ? "Server" : "Mitarbeiter"}.`);
+    } else {
+      showError(
+        `Lösung "${solution.name}" ist für ${solution.target === "server" ? "Server" : "Mitarbeiter"}, nicht für ${targetType === "server" ? "Server" : "Mitarbeiter"}.`
+      );
+    }
+    setSelectedSolution(null);
+  };
+
+  const handleDrop = (event: React.DragEvent, targetType: TargetType) => {
+    event.preventDefault();
+    const solutionId = event.dataTransfer.getData("solutionId");
+    const solution = solutions.find((s) => s.id === solutionId);
+
+    if (solution) {
+      applySolution(solution, targetType);
     }
   };
 
@@ -243,7 +267,12 @@ const Index = () => {
           <h2 className="text-xl font-semibold mb-4 text-primary dark:text-blue-300">Sicherheits-Arsenal</h2>
           <div className="space-y-2 flex-1 overflow-y-auto pr-2 max-h-[40vh] md:max-h-none" onScroll={updatePositions}>
             {solutions.map((solution) => (
-              <SolutionCard key={solution.id} solution={solution} onDragStart={handleDragStart} />
+              <SolutionCard
+                key={solution.id}
+                solution={solution}
+                onDragStart={handleDragStart}
+                onClick={handleSolutionClick}
+              />
             ))}
           </div>
         </div>
@@ -298,6 +327,26 @@ const Index = () => {
           );
         })}
       </div>
+
+      <AlertDialog open={!!selectedSolution} onOpenChange={(open) => !open && setSelectedSolution(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Lösung anwenden</AlertDialogTitle>
+            <AlertDialogDescription>
+              Wählen Sie das Ziel für "{selectedSolution?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction onClick={() => selectedSolution && applySolution(selectedSolution, "server")}>
+              AlienBag Server
+            </AlertDialogAction>
+            <AlertDialogAction onClick={() => selectedSolution && applySolution(selectedSolution, "employee")}>
+              Mitarbeiter
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );

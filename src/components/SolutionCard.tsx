@@ -6,19 +6,21 @@ import { Solution } from "@/data/securityData";
 interface SolutionCardProps {
   solution: Solution;
   onDragStart: (event: React.DragEvent, solutionId: string) => void;
+  onClick?: (solution: Solution) => void;
 }
 
-const SolutionCard: React.FC<SolutionCardProps> = ({ solution, onDragStart }) => (
+const SolutionCard: React.FC<SolutionCardProps> = ({ solution, onDragStart, onClick }) => (
   <Tooltip>
     <TooltipTrigger asChild>
       <Card
-        className="mb-4 bg-blue-50 border-blue-200 shadow-sm cursor-grab"
+        className="mb-3 md:mb-4 bg-blue-50 border-blue-200 shadow-sm cursor-grab active:cursor-grabbing md:cursor-grab active:scale-95 transition-transform"
         draggable
         onDragStart={(e) => onDragStart(e, solution.id)}
+        onClick={() => onClick && onClick(solution)}
       >
-        <CardHeader>
-          <CardTitle className="text-blue-700">{solution.name}</CardTitle>
-          <CardDescription>{solution.description}</CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-blue-700 text-sm md:text-lg">{solution.name}</CardTitle>
+          <CardDescription className="text-xs md:text-sm">{solution.description}</CardDescription>
         </CardHeader>
       </Card>
     </TooltipTrigger>
